@@ -1,4 +1,16 @@
 import express from "express";
+import { connect, model } from "mongoose";
+
+/* Mongoose */
+connect("mongodb://localhost/myapp", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log("Kết nối MongoDB thành công!"))
+  .catch((err) => console.error("Lỗi kết nối MongoDB:", err));
+
+const User = model("User", { name: String });
+const Todo = model("Todo", { id: Number, name: String });
 
 const app = express();
 const PORT = 3000;
@@ -88,6 +100,39 @@ app.get("/api/products/:id", (req, res) => {
     return res.status(404).send("Không tìm thấy sản phẩm");
   }
   res.json(product);
+});
+
+// add user
+app.get("/api/add-user", async (req, res) => {
+  const user = new User({ name: "Hùng" });
+  await user.save();
+  res.send("Đã thêm người dùng!");
+});
+
+// add 3 todos
+app.get("/api/add-todo", async (req, res) => {
+  // const todo = new Todo({ name: "Viết bài blog" });
+  const todos = [
+    { id: 1, name: "Viết bài blog" },
+    { id: 2, name: "Làm bài tập" },
+    { id: 3, name: "Đọc sách" },
+  ];
+  // await todo.save();
+  await Todo.insertMany(todos);
+  res.send("Đã thêm công việc!");
+});
+
+// get all todos
+app.get("/api/todos", async (req, res) => {
+  const todos = await Todo.find();
+  res.json(todos);
+});
+
+// delete todo by id
+app.get("/api/delete-todo/:id", async (req, res) => {
+  const { id } = req.params;
+  await Todo.deleteOne({ id: parseInt(id) });
+  res.send("Đã xóa công việc!");
 });
 
 /* start server */
